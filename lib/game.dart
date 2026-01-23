@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sudoku_api/sudoku_api.dart';
 
 import 'grid.dart';
 
@@ -21,16 +22,21 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  int _counter = 0;
+  List<List<Cell>>? puzzled;
 
-  void _incrementCounter() {
+  void generateGrid() {
+    {
+      PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
+      Puzzle puzzle = Puzzle(puzzleOptions);
+      puzzle.generate().then((_) {
+        puzzled = puzzle.board()?.matrix();
+      });
+    }
+  }
+
+  void setGrid() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      generateGrid();
     });
   }
 
@@ -40,7 +46,7 @@ class _GameState extends State<Game> {
     var width = MediaQuery.of(context).size.width;
     var maxSize = height > width ? width : height;
     var boxSize = (maxSize / 3).ceil().toDouble();
-
+    setGrid();
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -80,8 +86,15 @@ class _GameState extends State<Game> {
                         border: Border.all(color: Colors.blueAccent)),
                     child: GridView.count(
                       crossAxisCount: 3,
-                      children: List.generate(9, (x) {
-                        return InnerGrid(s: x, bx: boxSize);
+                      children: List.generate(9, (y) {
+                        var xp = ((x ~/ 3)) * 3 + ((y ~/ 3));
+                        var yp = (x % 3) * 3 + (y % 3);
+                        // var xp = (x <= 2 ? 0 : (x <= 5 ? 3 : 6)) +
+                        //     (y <= 2 ? 0 : (y <= 5 ? 1 : 2));
+                        // var yp = (x % 3 == 0 ? 0 : (x % 3 == 1 ? 3 : 6)) +
+                        //     (y % 3);
+                        return InnerGrid(
+                            s: puzzled?[xp][yp].getValue(), bx: boxSize);
                       }),
                     ),
                   );
@@ -90,11 +103,6 @@ class _GameState extends State<Game> {
             )
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

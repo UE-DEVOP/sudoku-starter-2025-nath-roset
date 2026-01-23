@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class InnerGrid extends Container {
-  int s = 0;
+  int? s = 0;
   double? bx = 0;
 
-  InnerGrid({required this.s, required this.bx});
+  InnerGrid({super.key, required this.s, required this.bx});
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +13,6 @@ class InnerGrid extends Container {
         height: bx,
         decoration:
             BoxDecoration(border: Border.all(color: Colors.black, width: 0.3)),
-        child: Center(child: Text(s.toString())));
+        child: Center(child: Text(s == 0 ? "" : s.toString())));
   }
 }
