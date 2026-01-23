@@ -1,4 +1,4 @@
-# sudoku_starter
+# Nathan Roset
 
 Sudoku game
 
