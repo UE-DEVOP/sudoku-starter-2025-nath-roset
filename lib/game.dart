@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'grid.dart';
+
 class Game extends StatefulWidget {
   const Game({Key? key, required this.title}) : super(key: key);
 
@@ -76,6 +78,12 @@ class _GameState extends State<Game> {
                     height: boxSize,
                     decoration: BoxDecoration(
                         border: Border.all(color: Colors.blueAccent)),
+                    child: GridView.count(
+                      crossAxisCount: 3,
+                      children: List.generate(9, (x) {
+                        return InnerGrid(s: x, bx: boxSize);
+                      }),
+                    ),
                   );
                 }),
               ),
