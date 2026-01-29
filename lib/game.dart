@@ -24,20 +24,20 @@ class Game extends StatefulWidget {
 class _GameState extends State<Game> {
   List<List<Cell>>? puzzled;
 
+  _GameState() {
+    generateGrid();
+  }
+
   void generateGrid() {
     {
       PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
       Puzzle puzzle = Puzzle(puzzleOptions);
       puzzle.generate().then((_) {
-        puzzled = puzzle.board()?.matrix();
+        setState(() {
+          puzzled = puzzle.board()?.matrix();
+        });
       });
     }
-  }
-
-  void setGrid() {
-    setState(() {
-      generateGrid();
-    });
   }
 
   @override
@@ -46,7 +46,6 @@ class _GameState extends State<Game> {
     var width = MediaQuery.of(context).size.width;
     var maxSize = height > width ? width : height;
     var boxSize = (maxSize / 3).ceil().toDouble();
-    setGrid();
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -63,7 +62,7 @@ class _GameState extends State<Game> {
           children: <Widget>[
             SizedBox(
               width: 3 * boxSize,
-              height: width,
+              height: maxSize,
               child: GridView.count(
                 crossAxisCount: 3,
                 children: List.generate(9, (x) {
