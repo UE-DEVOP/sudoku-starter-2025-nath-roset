@@ -54,23 +54,11 @@ class _GameState extends State<Game> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
           // Invoke "debug painting" (press "p" in the console, choose the
           // "Toggle Debug Paint" action from the Flutter Inspector in Android
           // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
           // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SizedBox(
@@ -89,10 +77,6 @@ class _GameState extends State<Game> {
                       children: List.generate(9, (y) {
                         var xp = ((x ~/ 3)) * 3 + ((y ~/ 3));
                         var yp = (x % 3) * 3 + (y % 3);
-                        // var xp = (x <= 2 ? 0 : (x <= 5 ? 3 : 6)) +
-                        //     (y <= 2 ? 0 : (y <= 5 ? 1 : 2));
-                        // var yp = (x % 3 == 0 ? 0 : (x % 3 == 1 ? 3 : 6)) +
-                        //     (y % 3);
                         return InnerGrid(
                             s: puzzled?[xp][yp].getValue(), bx: boxSize);
                       }),
@@ -103,7 +87,7 @@ class _GameState extends State<Game> {
             )
           ],
         ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
