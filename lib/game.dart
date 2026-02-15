@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sudoku_api/sudoku_api.dart';
 
-import 'grid.dart';
+import 'innergrid.dart';
 
 class Game extends StatefulWidget {
   const Game({Key? key, required this.title}) : super(key: key);
@@ -22,7 +22,8 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  List<List<Cell>>? puzzled;
+  Grid? puzzled;
+  InnerGrid? selected;
 
   _GameState() {
     generateGrid();
@@ -34,7 +35,7 @@ class _GameState extends State<Game> {
       Puzzle puzzle = Puzzle(puzzleOptions);
       puzzle.generate().then((_) {
         setState(() {
-          puzzled = puzzle.board()?.matrix();
+          puzzled = puzzle.board();
         });
       });
     }
@@ -59,6 +60,7 @@ class _GameState extends State<Game> {
           // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
           // to see the wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 20,
           children: <Widget>[
             SizedBox(
               width: 3 * boxSize,
@@ -77,13 +79,57 @@ class _GameState extends State<Game> {
                         var xp = ((x ~/ 3)) * 3 + ((y ~/ 3));
                         var yp = (x % 3) * 3 + (y % 3);
                         return InnerGrid(
-                            s: puzzled?[xp][yp].getValue(), bx: boxSize);
+                          value: puzzled?.matrix()![xp][yp].getValue(),
+                          position: Position(row: yp, column: xp),
+                          sz: boxSize,
+                          isSelected: false,
+                        );
                       }),
                     ),
                   );
                 }),
               ),
-            )
+            ),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: boxSize / 3,
+                children: List.generate(5, (x) {
+                  var v = x + 1;
+                  return ElevatedButton(
+                      style: const ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll<Color>(Colors.blueAccent),
+                          foregroundColor:
+                              WidgetStatePropertyAll<Color>(Colors.white)),
+                      onPressed: () {
+                        selected = InnerGrid(
+                            value: v,
+                            position: selected!.position,
+                            sz: boxSize,
+                            isSelected: false);
+                      },
+                      child: Text((v).toString()));
+                })),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 50.0,
+                children: List.generate(4, (x) {
+                  var v = x + 6;
+                  return ElevatedButton(
+                      style: const ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll<Color>(Colors.blueAccent),
+                          foregroundColor:
+                              WidgetStatePropertyAll<Color>(Colors.white)),
+                      onPressed: () {
+                        selected = InnerGrid(
+                            value: v,
+                            position: selected!.position,
+                            sz: boxSize,
+                            isSelected: false);
+                      },
+                      child: Text((v).toString()));
+                }))
           ],
         ),
       ),
