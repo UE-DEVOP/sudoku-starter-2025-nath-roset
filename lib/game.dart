@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:sudoku_api/sudoku_api.dart';
 
@@ -22,11 +24,26 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  Grid? puzzled;
-  InnerGrid? selected;
+  Grid? _puzzled;
+  Position? _caseSelected;
 
   _GameState() {
     generateGrid();
+  }
+
+  void updateValue(int val) {
+    setState(() {
+      if (_caseSelected != null) {
+        log(_caseSelected!.grid!.toString());
+        _puzzled!.cellAt(_caseSelected!).setValue(val);
+      }
+    });
+  }
+
+  void _handleInnerGridTap(Position? newState) {
+    setState(() {
+      _caseSelected = newState;
+    });
   }
 
   void generateGrid() {
@@ -35,7 +52,7 @@ class _GameState extends State<Game> {
       Puzzle puzzle = Puzzle(puzzleOptions);
       puzzle.generate().then((_) {
         setState(() {
-          puzzled = puzzle.board();
+          _puzzled = puzzle.board();
         });
       });
     }
@@ -46,11 +63,20 @@ class _GameState extends State<Game> {
     var height = MediaQuery.of(context).size.height / 2;
     var width = MediaQuery.of(context).size.width;
     var maxSize = height > width ? width : height;
-    var boxSize = (maxSize / 3).ceil().toDouble();
+    var boxSize = (maxSize / 3).floor().toDouble();
+    rowBuilder({required int begin, required int offset}) =>
+        List.generate(begin, (x) {
+          var v = x + offset;
+          return ElevatedButton(
+              style: const ButtonStyle(
+                  backgroundColor:
+                      WidgetStatePropertyAll<Color>(Colors.blueAccent),
+                  foregroundColor: WidgetStatePropertyAll<Color>(Colors.white)),
+              onPressed: () => updateValue(v),
+              child: Text((v).toString()));
+        });
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
@@ -76,13 +102,14 @@ class _GameState extends State<Game> {
                     child: GridView.count(
                       crossAxisCount: 3,
                       children: List.generate(9, (y) {
-                        var xp = ((x ~/ 3)) * 3 + ((y ~/ 3));
-                        var yp = (x % 3) * 3 + (y % 3);
+                        var colVar = (x % 3) * 3 + (y % 3);
+                        var rowVar = ((x ~/ 3)) * 3 + ((y ~/ 3));
+                        var pos = Position(row: rowVar, column: colVar);
                         return InnerGrid(
-                          value: puzzled?.matrix()![xp][yp].getValue(),
-                          position: Position(row: yp, column: xp),
+                          value: _puzzled?.matrix()![rowVar][colVar].getValue(),
+                          position: pos,
                           sz: boxSize,
-                          isSelected: false,
+                          onSelected: _handleInnerGridTap,
                         );
                       }),
                     ),
@@ -93,43 +120,11 @@ class _GameState extends State<Game> {
             Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 spacing: boxSize / 3,
-                children: List.generate(5, (x) {
-                  var v = x + 1;
-                  return ElevatedButton(
-                      style: const ButtonStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll<Color>(Colors.blueAccent),
-                          foregroundColor:
-                              WidgetStatePropertyAll<Color>(Colors.white)),
-                      onPressed: () {
-                        selected = InnerGrid(
-                            value: v,
-                            position: selected!.position,
-                            sz: boxSize,
-                            isSelected: false);
-                      },
-                      child: Text((v).toString()));
-                })),
+                children: rowBuilder(begin: 5, offset: 1)),
             Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 50.0,
-                children: List.generate(4, (x) {
-                  var v = x + 6;
-                  return ElevatedButton(
-                      style: const ButtonStyle(
-                          backgroundColor:
-                              WidgetStatePropertyAll<Color>(Colors.blueAccent),
-                          foregroundColor:
-                              WidgetStatePropertyAll<Color>(Colors.white)),
-                      onPressed: () {
-                        selected = InnerGrid(
-                            value: v,
-                            position: selected!.position,
-                            sz: boxSize,
-                            isSelected: false);
-                      },
-                      child: Text((v).toString()));
-                }))
+                spacing: boxSize / 3,
+                children: rowBuilder(begin: 4, offset: 6))
           ],
         ),
       ),
