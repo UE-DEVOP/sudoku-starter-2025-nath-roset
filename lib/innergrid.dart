@@ -36,34 +36,36 @@ class _InnerGridState extends State<InnerGrid> {
   }
 
   Text _getValueFromModel() {
-    var rowVal = widget.position.grid!.x.toInt();
-    var colVar = widget.position.grid!.y.toInt();
-    int? val = widget.model?.board()?.matrix()![rowVal][colVar].getValue();
+    int? val = widget.model?.board()?.cellAt(widget.position).getValue();
     if (val != 0) {
       return Text(val.toString());
     } else {
-      val = widget.model?.solvedBoard()?.matrix()![rowVal][colVar].getValue();
-      return Text(val.toString(),
-          style: const TextStyle(color: Colors.black12));
+      val = widget.model?.solvedBoard()?.cellAt(widget.position).getValue();
+      return Text(
+        val.toString(),
+        style: const TextStyle(color: Colors.black12),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: widget.sz,
-        height: widget.sz,
-        decoration: BoxDecoration(
-          color: _selected
-              ? Colors.blueAccent.shade100.withAlpha(100)
-              : Colors.transparent,
-          border: Border.all(color: Colors.black, width: 0.3),
+      width: widget.sz,
+      height: widget.sz,
+      decoration: BoxDecoration(
+        color: _selected
+            ? Colors.blueAccent.shade100.withAlpha(100)
+            : Colors.transparent,
+        border: Border.all(color: Colors.black, width: 0.3),
+      ),
+      child: InkWell(
+        onTap: _handleTap,
+        child: Center(
+          child: _getValueFromModel(),
         ),
-        child: InkWell(
-            onTap: _handleTap,
-            child: Center(
-              child: _getValueFromModel(),
-            )));
+      ),
+    );
   }
 
   @override

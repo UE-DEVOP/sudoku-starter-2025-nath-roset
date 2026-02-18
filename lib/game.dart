@@ -1,5 +1,4 @@
-import 'dart:developer';
-
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:sudoku_api/sudoku_api.dart';
 
@@ -27,17 +26,36 @@ class _GameState extends State<Game> {
   Grid? _puzzled;
   Position? _caseSelected;
   Puzzle? _puzzle;
+  bool _showToast = false;
 
   _GameState() {
     generateGrid();
   }
 
-  void updateValue(int val) {
+  void updateValue(int guess) {
     setState(() {
       if (_caseSelected != null) {
-        log(_caseSelected!.grid!.toString());
-        // _puzzled!.cellAt(_caseSelected!).setValue(val);
-        _puzzle!.board()?.cellAt(_caseSelected!).setValue(val);
+        var rightValue =
+            _puzzle!.solvedBoard()?.cellAt(_caseSelected!).getValue();
+        if (guess != rightValue) {
+          const snackBar = SnackBar(
+            /// need to set following properties for best effect of awesome_snackbar_content
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              message: "Please try another one",
+              title: 'Wrong value',
+              contentType: ContentType.warning,
+            ),
+          );
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        } else {
+          _puzzle!.board()?.cellAt(_caseSelected!).setValue(guess);
+        }
       }
     });
   }
@@ -51,12 +69,6 @@ class _GameState extends State<Game> {
   void generateGrid() {
     {
       PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
-      // Puzzle puzzle = Puzzle(puzzleOptions);
-      // puzzle.generate().then((_) {
-      //   setState(() {
-      //     _puzzled = puzzle.board();
-      //   });
-      // });
       _puzzle = Puzzle(puzzleOptions);
       _puzzle!.generate();
     }
@@ -111,7 +123,6 @@ class _GameState extends State<Game> {
                         var pos = Position(row: rowVar, column: colVar);
                         return InnerGrid(
                           model: _puzzle,
-                          // value: _puzzled?.matrix()![rowVar][colVar].getValue(),
                           position: pos,
                           sz: boxSize,
                           onSelected: _handleInnerGridTap,
@@ -129,7 +140,7 @@ class _GameState extends State<Game> {
             Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 spacing: boxSize / 3,
-                children: rowBuilder(begin: 4, offset: 6))
+                children: rowBuilder(begin: 4, offset: 6)),
           ],
         ),
       ),
