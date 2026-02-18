@@ -3,15 +3,18 @@ import 'package:sudoku_api/sudoku_api.dart';
 
 class InnerGrid extends StatefulWidget {
   final Position position;
-  int? value = 0;
   final double sz;
-  final ValueChanged<Position?> onSelected;
 
-  InnerGrid(
+  // int? value = 0;
+  final ValueChanged<Position?> onSelected;
+  final Puzzle? model;
+
+  const InnerGrid(
       {super.key,
+      required this.model,
       required this.position,
       required this.sz,
-      required this.value,
+      // required this.value,
       required this.onSelected});
 
   @override
@@ -32,6 +35,19 @@ class _InnerGridState extends State<InnerGrid> {
     }
   }
 
+  Text _getValueFromModel() {
+    var rowVal = widget.position.grid!.x.toInt();
+    var colVar = widget.position.grid!.y.toInt();
+    int? val = widget.model?.board()?.matrix()![rowVal][colVar].getValue();
+    if (val != 0) {
+      return Text(val.toString());
+    } else {
+      val = widget.model?.solvedBoard()?.matrix()![rowVal][colVar].getValue();
+      return Text(val.toString(),
+          style: const TextStyle(color: Colors.black12));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -44,16 +60,14 @@ class _InnerGridState extends State<InnerGrid> {
           border: Border.all(color: Colors.black, width: 0.3),
         ),
         child: InkWell(
-          onTap: _handleTap,
-          child: Center(
-              child: Text(widget.value == 0 || widget.value == null
-                  ? ""
-                  : widget.value.toString())),
-        ));
+            onTap: _handleTap,
+            child: Center(
+              child: _getValueFromModel(),
+            )));
   }
 
   @override
   String toString({DiagnosticLevel? minLevel}) {
-    return 'InnerGrid{value: ${widget.value}, position: ${widget.position.grid}, isSelected: ${_selected}';
+    return 'InnerGrid{value: yes, position: ${widget.position.grid}, isSelected: ${_selected}';
   }
 }

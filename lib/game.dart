@@ -26,6 +26,7 @@ class Game extends StatefulWidget {
 class _GameState extends State<Game> {
   Grid? _puzzled;
   Position? _caseSelected;
+  Puzzle? _puzzle;
 
   _GameState() {
     generateGrid();
@@ -35,7 +36,8 @@ class _GameState extends State<Game> {
     setState(() {
       if (_caseSelected != null) {
         log(_caseSelected!.grid!.toString());
-        _puzzled!.cellAt(_caseSelected!).setValue(val);
+        // _puzzled!.cellAt(_caseSelected!).setValue(val);
+        _puzzle!.board()?.cellAt(_caseSelected!).setValue(val);
       }
     });
   }
@@ -49,12 +51,14 @@ class _GameState extends State<Game> {
   void generateGrid() {
     {
       PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
-      Puzzle puzzle = Puzzle(puzzleOptions);
-      puzzle.generate().then((_) {
-        setState(() {
-          _puzzled = puzzle.board();
-        });
-      });
+      // Puzzle puzzle = Puzzle(puzzleOptions);
+      // puzzle.generate().then((_) {
+      //   setState(() {
+      //     _puzzled = puzzle.board();
+      //   });
+      // });
+      _puzzle = Puzzle(puzzleOptions);
+      _puzzle!.generate();
     }
   }
 
@@ -106,7 +110,8 @@ class _GameState extends State<Game> {
                         var rowVar = ((x ~/ 3)) * 3 + ((y ~/ 3));
                         var pos = Position(row: rowVar, column: colVar);
                         return InnerGrid(
-                          value: _puzzled?.matrix()![rowVar][colVar].getValue(),
+                          model: _puzzle,
+                          // value: _puzzled?.matrix()![rowVar][colVar].getValue(),
                           position: pos,
                           sz: boxSize,
                           onSelected: _handleInnerGridTap,
