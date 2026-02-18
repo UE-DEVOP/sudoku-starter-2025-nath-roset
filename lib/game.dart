@@ -1,5 +1,6 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sudoku_api/sudoku_api.dart';
 
 import 'innergrid.dart';
@@ -23,10 +24,8 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  Grid? _puzzled;
   Position? _caseSelected;
   Puzzle? _puzzle;
-  bool _showToast = false;
 
   _GameState() {
     generateGrid();
@@ -58,6 +57,7 @@ class _GameState extends State<Game> {
         }
       }
     });
+    checkGameSolved();
   }
 
   void _handleInnerGridTap(Position? newState) {
@@ -69,9 +69,21 @@ class _GameState extends State<Game> {
   void generateGrid() {
     {
       PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
-      _puzzle = Puzzle(puzzleOptions);
-      _puzzle!.generate();
+      var puzzle = Puzzle(puzzleOptions);
+      puzzle.generate().then((_) => setState(() {
+            _puzzle = puzzle;
+          }));
     }
+  }
+
+  void checkGameSolved() {
+    for (int i = 0; i < 9 * 9; i++) {
+      if (_puzzle?.board()!.cellAt(Position(index: i)).getValue() !=
+          _puzzle?.solvedBoard()!.cellAt(Position(index: i)).getValue()) {
+        return;
+      }
+    }
+    context.go("/end");
   }
 
   @override
@@ -141,9 +153,25 @@ class _GameState extends State<Game> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 spacing: boxSize / 3,
                 children: rowBuilder(begin: 4, offset: 6)),
+            ElevatedButton(
+              onPressed: resolve,
+              style: const ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll<Color>(Colors.amber)),
+              child: const Text("Resolve"),
+            )
           ],
         ),
       ),
     );
+  }
+
+  void resolve() {
+    setState(() {
+      for (int i = 0; i < 9 * 9; i++) {
+        _puzzle?.board()!.cellAt(Position(index: i)).setValue(
+            _puzzle?.solvedBoard()!.cellAt(Position(index: i)).getValue());
+      }
+    });
+    checkGameSolved();
   }
 }
