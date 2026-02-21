@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -24,66 +26,12 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  Position? _caseSelected;
-  Puzzle? _puzzle;
+  Point<int>? _caseSelected;
+  Puzzle _puzzle = Puzzle(PuzzleOptions(patternName: "winter"));
+  bool _isInit = false;
 
   _GameState() {
     generateGrid();
-  }
-
-  void updateValue(int guess) {
-    setState(() {
-      if (_caseSelected != null) {
-        var rightValue =
-            _puzzle!.solvedBoard()?.cellAt(_caseSelected!).getValue();
-        if (guess != rightValue) {
-          const snackBar = SnackBar(
-            /// need to set following properties for best effect of awesome_snackbar_content
-            elevation: 0,
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.transparent,
-            content: AwesomeSnackbarContent(
-              message: "Please try another one",
-              title: 'Wrong value',
-              contentType: ContentType.warning,
-            ),
-          );
-
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(snackBar);
-        } else {
-          _puzzle!.board()?.cellAt(_caseSelected!).setValue(guess);
-        }
-      }
-    });
-    checkGameSolved();
-  }
-
-  void _handleInnerGridTap(Position? newState) {
-    setState(() {
-      _caseSelected = newState;
-    });
-  }
-
-  void generateGrid() {
-    {
-      PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
-      var puzzle = Puzzle(puzzleOptions);
-      puzzle.generate().then((_) => setState(() {
-            _puzzle = puzzle;
-          }));
-    }
-  }
-
-  void checkGameSolved() {
-    for (int i = 0; i < 9 * 9; i++) {
-      if (_puzzle?.board()!.cellAt(Position(index: i)).getValue() !=
-          _puzzle?.solvedBoard()!.cellAt(Position(index: i)).getValue()) {
-        return;
-      }
-    }
-    context.go("/end");
   }
 
   @override
@@ -92,6 +40,11 @@ class _GameState extends State<Game> {
     var width = MediaQuery.of(context).size.width;
     var maxSize = height > width ? width : height;
     var boxSize = (maxSize / 3).floor().toDouble();
+    if (!_isInit) {
+      _puzzle.generate().then((_) => setState(() {
+            _isInit = true;
+          }));
+    }
     rowBuilder({required int begin, required int offset}) =>
         List.generate(begin, (x) {
           var v = x + offset;
@@ -109,10 +62,6 @@ class _GameState extends State<Game> {
       ),
       body: Center(
         child: Column(
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 20,
           children: <Widget>[
@@ -130,14 +79,20 @@ class _GameState extends State<Game> {
                     child: GridView.count(
                       crossAxisCount: 3,
                       children: List.generate(9, (y) {
-                        var colVar = (x % 3) * 3 + (y % 3);
-                        var rowVar = ((x ~/ 3)) * 3 + ((y ~/ 3));
-                        var pos = Position(row: rowVar, column: colVar);
+                        var rowY = (x % 3) * 3 + (y % 3);
+                        var colX = ((x ~/ 3)) * 3 + ((y ~/ 3));
                         return InnerGrid(
-                          model: _puzzle,
-                          position: pos,
-                          sz: boxSize,
-                          onSelected: _handleInnerGridTap,
+                          sz: boxSize / 3,
+                          selected: _caseSelected != null &&
+                              _caseSelected!.x == colX &&
+                              _caseSelected!.y == rowY,
+                          value:
+                              "${_puzzle.board()?.matrix()?[colX][rowY].getValue()}",
+                          hint:
+                              "${_puzzle.solvedBoard()?.matrix()?[colX][rowY].getValue()}",
+                          onSelected: () => setState(() {
+                            _caseSelected = Point(colX, rowY);
+                          }),
                         );
                       }),
                     ),
@@ -165,11 +120,65 @@ class _GameState extends State<Game> {
     );
   }
 
+  void updateValue(int guess) {
+    setState(() {
+      if (_caseSelected != null) {
+        var rightValue = _puzzle
+            .solvedBoard()!
+            .matrix()?[_caseSelected!.x][_caseSelected!.y]
+            .getValue();
+        if (guess != rightValue) {
+          const snackBar = SnackBar(
+            /// need to set following properties for best effect of awesome_snackbar_content
+            elevation: 0,
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            content: AwesomeSnackbarContent(
+              message: "Please try another one",
+              title: 'Wrong value',
+              contentType: ContentType.warning,
+            ),
+          );
+
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(snackBar);
+        } else {
+          _puzzle
+              .board()
+              ?.matrix()?[_caseSelected!.x][_caseSelected!.y]
+              .setValue(guess);
+        }
+      }
+    });
+    checkGameSolved();
+  }
+
+  void generateGrid() {
+    {
+      PuzzleOptions puzzleOptions = PuzzleOptions(patternName: "winter");
+      var puzzle = Puzzle(puzzleOptions);
+      puzzle.generate().then((_) => setState(() {
+            _puzzle = puzzle;
+          }));
+    }
+  }
+
+  void checkGameSolved() {
+    for (int i = 0; i < 9 * 9; i++) {
+      if (_puzzle.board()!.cellAt(Position(index: i)).getValue() !=
+          _puzzle.solvedBoard()!.cellAt(Position(index: i)).getValue()) {
+        return;
+      }
+    }
+    context.go("/end");
+  }
+
   void resolve() {
     setState(() {
       for (int i = 0; i < 9 * 9; i++) {
-        _puzzle?.board()!.cellAt(Position(index: i)).setValue(
-            _puzzle?.solvedBoard()!.cellAt(Position(index: i)).getValue());
+        _puzzle.board()!.cellAt(Position(index: i)).setValue(
+            _puzzle.solvedBoard()!.cellAt(Position(index: i)).getValue());
       }
     });
     checkGameSolved();

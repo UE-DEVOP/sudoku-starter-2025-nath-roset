@@ -1,75 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:sudoku_api/sudoku_api.dart';
 
-class InnerGrid extends StatefulWidget {
-  final Position position;
+class InnerGrid extends StatelessWidget {
   final double sz;
+  final bool selected;
+  final String value;
+  final String hint;
+  final Function onSelected;
 
-  // int? value = 0;
-  final ValueChanged<Position?> onSelected;
-  final Puzzle? model;
-
-  const InnerGrid(
-      {super.key,
-      required this.model,
-      required this.position,
-      required this.sz,
-      // required this.value,
-      required this.onSelected});
-
-  @override
-  State<InnerGrid> createState() => _InnerGridState();
-}
-
-class _InnerGridState extends State<InnerGrid> {
-  bool _selected = false;
-
-  void _handleTap() {
-    setState(() {
-      _selected = !_selected;
-    });
-    if (_selected) {
-      widget.onSelected(widget.position);
-    } else {
-      widget.onSelected(null);
-    }
-  }
-
-  Text _getValueFromModel() {
-    int? val = widget.model?.board()?.cellAt(widget.position).getValue();
-    if (val != 0) {
-      return Text(val.toString());
-    } else {
-      val = widget.model?.solvedBoard()?.cellAt(widget.position).getValue();
-      return Text(
-        val.toString(),
-        style: const TextStyle(color: Colors.black12),
-      );
-    }
-  }
+  const InnerGrid({
+    super.key,
+    required this.sz,
+    required this.selected,
+    required this.value,
+    required this.hint,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: widget.sz,
-      height: widget.sz,
-      decoration: BoxDecoration(
-        color: _selected
-            ? Colors.blueAccent.shade100.withAlpha(100)
-            : Colors.transparent,
-        border: Border.all(color: Colors.black, width: 0.3),
-      ),
-      child: InkWell(
-        onTap: _handleTap,
+    return InkWell(
+      onTap: () => value == "0" ? onSelected() : null,
+      child: Container(
+        width: sz,
+        height: sz,
+        decoration: BoxDecoration(
+          color: selected
+              ? Colors.blueAccent.shade100.withAlpha(100)
+              : Colors.transparent,
+          border: Border.all(color: Colors.black, width: 0.3),
+        ),
         child: Center(
-          child: _getValueFromModel(),
+          child: Text(
+            value == "0" ? hint : value,
+            style:
+                TextStyle(color: value == "0" ? Colors.black12 : Colors.black),
+          ),
         ),
       ),
     );
-  }
-
-  @override
-  String toString({DiagnosticLevel? minLevel}) {
-    return 'InnerGrid{value: yes, position: ${widget.position.grid}, isSelected: ${_selected}';
   }
 }
